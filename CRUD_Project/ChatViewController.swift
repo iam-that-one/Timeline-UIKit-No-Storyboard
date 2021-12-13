@@ -11,6 +11,7 @@ import Firebase
 class Chat: UIViewController {
     var users = FetchUsers()
     var myName  = ""
+    var hisName = ""
     let firestore = Firestore.firestore()
     let myId = Auth.auth().currentUser?.uid
     var id : String?
@@ -62,7 +63,7 @@ class Chat: UIViewController {
         // observe the keyboard status. If will Hide, the function (keyboardWillHide) will be excuted.
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil)
         // Do any additional setup after loading the view.
-        getUserMetaDdata()
+        _ = getUserData()
         fetchMesssages()
         print(id!, name!)
         view.backgroundColor = .white
@@ -100,7 +101,7 @@ class Chat: UIViewController {
     }
     @objc func sendMSG(){
        // getName()
-        let msg = ["content": messageTextField.text!, "id": myId, "date" : dateFormatter.string(from: Date()), "Name" : myName]
+        let msg = ["content": messageTextField.text!, "id": myId, "date" : dateFormatter.string(from: Date()), "Name" : getUserData()]
         print("*******\(myName)")
         let myId = Auth.auth().currentUser?.uid
         firestore.collection("Users").document(myId!)
@@ -138,7 +139,7 @@ extension Chat : UITableViewDelegate, UITableViewDataSource{
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = chatTableView.dequeueReusableCell(withIdentifier: "chatCell",for: indexPath) as! MyChatCell
        
-        cell.username.text = messages[indexPath.row].id
+        cell.username.text = messages[indexPath.row].name
         cell.message.text = messages[indexPath.row].content
         //cell.layer.cornerRadius = 10
         //cell.backgroundColor = UIColor.systemIndigo
@@ -146,18 +147,7 @@ extension Chat : UITableViewDelegate, UITableViewDataSource{
     }
     
     func fetchMesssages(){
-        let name = firestore.collection("Users").document(myId!)
-        name.getDocument { user, error in
-            if let error = error{
-                print(error)
-            }else{
-                if Auth.auth().currentUser?.uid == user?.get("userID") as? String{
-                self.myName = user?.get("firstName") as! String
-                }
-                print("###########")
-                print(self.myName)
-            }
-        }
+       
         firestore.collection("Users").document(myId!)
             .collection("Message").document(self.id!).collection("msg")
             .order(by: "date")
@@ -188,17 +178,20 @@ extension Chat : UITableViewDelegate, UITableViewDataSource{
             }
         }
     }
-    func getUserMetaDdata(){
+    func getUserData() -> String{
+        users.fetchData()
         for user in users.users{
-            if user.firstname == name{
+            if user.id == Auth.auth().currentUser?.uid{
                 self.logo.image = UIImage(data: user.image)
-              
+                self.myName = user.firstname
                // print(self.username)
                 print(user.image)
                 break
             }
         }
+        return self.myName
     }
+    
 }
 
 

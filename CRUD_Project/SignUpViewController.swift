@@ -183,6 +183,9 @@ class SignUpViewController: UIViewController {
     @objc func dismissKeyboard() {
         view.endEditing(true)
     }
+    func convertImage(image : UIImage) -> Data{
+        return image.jpegData(compressionQuality: 0.1) ?? Data()
+    }
 }
 
 extension SignUpViewController:UINavigationControllerDelegate, UIImagePickerControllerDelegate{
